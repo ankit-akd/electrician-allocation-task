@@ -4,7 +4,9 @@ function App() {
   const [electricians, setElectricians] = useState([]);
   const [sites, setSites] = useState([]);
   const [assignedSites, setAssignedSites] = useState([]);
-  const [newInstallationDate, setNewInstallationDate] = useState('');
+  const [newInstallationDate, setNewInstallationDate] = useState(Array(sites.length).fill(''));
+  const [newInstallationDates, setNewInstallationDates] = useState({});
+
 
   useEffect(() => {
     fetch('http://localhost:3001/elec')
@@ -31,21 +33,24 @@ function App() {
   };
 
   const changeInstallationDate = (siteId, newDate) => {
-    fetch(`/sites/${siteId}`,{
+    fetch(`/sites/${siteId}`, {
       method: 'PUT',
-      headers:{
-        'Content-Type' : 'application/json',
+      headers: {
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({newDate}),
+      body: JSON.stringify({ newDate }),
     })
-    .then((res) => res.json())
-    .then((updatedSite) => {
-      setSites((prevSites) =>
-      prevSites.map((site) =>
-      site.name === siteId ? {...site, InstallationDate: updatedSite.InstallationDate} : site));
-    })
-    .catch((error) => console.error('Change Installation Date Error:', error));
+      .then((res) => res.json())
+      .then((updatedSite) => {
+        setSites((prevSites) =>
+          prevSites.map((site) =>
+            site.name === siteId ? { ...site, InstallationDate: updatedSite.InstallationDate } : site
+          )
+        );
+      })
+      .catch((error) => console.error('Change Installation Date Error:', error));
   };
+  
 
   return(
     <div className='App'>
@@ -67,7 +72,7 @@ function App() {
           <thead>
             <tr>
               <th>Site Name</th>
-              <th>City</th>
+              {/* <th>City</th> */}
               <th>Installation Date</th>
               <th>Grievance</th>
               <th>Change Date</th>
@@ -80,18 +85,22 @@ function App() {
                 <td>{site.InstallationDate}</td>
                 <td>{site.grievance ? 'Yes' : 'No'}</td>
                 <td>
-                  <input 
-                      type="date"
-                      value={newInstallationDate}
-                      onChange={(e) => setNewInstallationDate(e.target.value)}
-                    />
-                    <button onClick={() => changeInstallationDate(site.name, newInstallationDate)}>
-                      Change Date
-                    </button>
-                </td>
+                  <input
+                    type="date"
+                    value={newInstallationDates[site.name] || site.InstallationDate}
+                    onChange={(e) => {
+                    const newDate = e.target.value;
+                    setNewInstallationDates((prevDates) => ({
+                    ...prevDates,
+                    [site.name]: newDate,
+                    }));
+                    }}
+                  />
+                </td>   
               </tr>
             ))}
           </tbody>
+
         </table>
       </div>
 
@@ -101,8 +110,8 @@ function App() {
         <h2>Assigned Sites</h2>
         <ul>
           {assignedSites.map((site) => (
-            <li key={site.name}>
-              {site.name} - Assigned to {site.AssignedElectrician}
+            <li key={electricians.name}>
+              {electricians.name} - Assigned to {site.AssignedElectrician}
             </li>
           ))}
         </ul>
